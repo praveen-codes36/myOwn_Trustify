@@ -1,6 +1,6 @@
 # Trustify 🛡️
 
-**Trustify** is a lightweight, AI-powered fact-checking assistant. It combines a verified vector database with live Google Search to provide accurate, real-time answers to your questions.
+**Trustify** is a full-stack, AI-powered fact-checking application. It combines a verified vector database with live Google Search to provide accurate, real-time answers to your questions, all wrapped in a modern React interface.
 
 Unlike standard chatbots, Trustify follows a strict "Truth First" protocol:
 
@@ -11,101 +11,109 @@ Unlike standard chatbots, Trustify follows a strict "Truth First" protocol:
 ## 🚀 Features
 
 * **Hybrid Intelligence:** Seamlessly switches between Vector Search (RAG) and Live Google Search.
-* **Gemini API Integration:** Powered by Google's **Gemini 3 Flash**, utilizing its native "Search Tool" capability for real-time grounding.
+* **Modern UI:** A clean, responsive React frontend styled with Bootstrap and custom animations.
 * **Time-Aware:** Understands the current date to prevent hallucinating "future" events.
 * **Vector Database:** Uses DataStax Astra DB for semantic search.
+* **LLM Power:** Powered by Google Gemini 3 Flash.
 
 ## 🛠️ Prerequisites
 
-Before you begin, you need the following keys:
-
-1. **Google Gemini API Key:**
-* Get it for free at [Google AI Studio](https://aistudio.google.com/).
-* *Note: Ensure your key has access to `gemini-3-flash-preview`.*
-
-
-2. **DataStax Astra DB:**
-* Create a free vector database at [DataStax Astra](https://astra.datastax.com/).
-* You will need the **API Endpoint** and an **Application Token**.
-
-
+* Node.js (v18 or higher)
+* A Google AI Studio API Key
+* A DataStax Astra DB Database
 
 ## 📦 Installation
 
-1. **Clone the repository:**
+### 1. Clone the Repository
+
 ```bash
-git clone https://github.com/shourya-shukla/trustify.git
+git clone https://github.com/your-username/trustify.git
 cd trustify
 
 ```
 
+### 2. Setup Backend (Root Folder)
 
-2. **Install dependencies:**
+Install the dependencies for the server and database tools.
+
 ```bash
-npm i
+npm install
 
 ```
 
+Create a `.env` file in the **root** folder and add your keys:
 
-3. **Configure Environment Variables:**
-Create a file named `.env` in the root folder. Paste your keys exactly like this:
 ```env
 # Google Gemini Integration
-GEMINI_API_KEY="your_actual_gemini_key_here"
+GEMINI_API_KEY=your_actual_gemini_key_here
 
 # DataStax Vector DB Integration
-ASTRA_DB_ENDPOINT="your_astra_db_endpoint_url"
-ASTRA_DB_APPLICATION_TOKEN="your_astra_token"
-ASTRA_DB_NAMESPACE="default_keyspace"
-ASTRA_DB_COLLECTION="trustify"
+ASTRA_DB_ENDPOINT=your_astra_db_endpoint_url
+ASTRA_DB_APPLICATION_TOKEN=your_astra_token
+ASTRA_DB_NAMESPACE=default_keyspace
+ASTRA_DB_COLLECTION=trustify
 
 ```
 
+### 3. Setup Frontend (React Folder)
 
+Navigate to the frontend folder and install its dependencies.
+
+```bash
+cd trustify-frontend
+npm install
+
+```
 
 ## 🏃‍♂️ Usage
 
-### 1. Seed the Database (Optional)
+You will need two terminal windows open to run the full stack.
 
-Populate your Vector Database with the latest fact-checks from trusted sources (Snopes, Politifact, etc.).
+### Terminal 1: Start the Backend
 
-```bash
-node seed.js
-
-```
-
-### 2. Run the Server
-
-Start the backend server and serve the frontend.
+From the **root** folder (`trustify/`):
 
 ```bash
 node server.js
 
 ```
 
-### 3. Open the App
+*This starts the API server on `http://localhost:3000`.*
 
-Visit **`http://localhost:3000`** in your browser.
+### Terminal 2: Start the Frontend
 
-## 🧠 How the API Integration Works
+From the **frontend** folder (`trustify/trustify-frontend/`):
 
-Trustify uses a smart **Decision Engine** inside `server.js`:
+```bash
+npm run dev
 
-1. **Embedding:** It uses the Gemini Embedding model (`text-embedding-004`) to convert your question into a vector.
-2. **Vector Search:** It queries Astra DB to see if we have *verified* matches.
-3. **Dynamic Prompting:**
-* **If matches found:** It feeds the data to Gemini and instructs it to act as a strict **Fact Checker**.
-* **If no matches:** It activates Gemini's **Google Search Tool**, allowing the model to query the live web for real-time answers.
+```
 
+*This launches the React app. Open the link shown (usually `http://localhost:5173`) in your browser.*
 
+## 🧠 Optional: Seeding Data
+
+If you want to populate your database with initial fact-checks, run the seeder script from the root folder:
+
+```bash
+node seed.js
+
+```
 
 ## 🧰 Tech Stack
 
-* **Backend:** Node.js, Express
-* **AI Model:** Google Gemini 3 Flash (`@google/genai`)
-* **Database:** DataStax Astra DB (`@datastax/astra-db-ts`)
-* **Frontend:** HTML5, Tailwind CSS (via CDN)
-* **Scraping:** Cheerio, LangChain
+**Frontend:**
+
+* React (Vite)
+* Bootstrap 5
+* CSS3 Animations
+
+**Backend:**
+
+* Node.js & Express
+* Google Gemini 3 Flash (`@google/genai`)
+* DataStax Astra DB (`@datastax/astra-db-ts`)
+* Cheerio & LangChain (for data scraping)
 
 ## 📄 License
 
