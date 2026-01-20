@@ -15,6 +15,7 @@
     "@google/genai": "^1.37.0",
     "@langchain/community": "^1.1.4",
     "@langchain/core": "^1.1.15",
+    "bootstrap": "^5.3.8",
     "cheerio": "^1.1.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
