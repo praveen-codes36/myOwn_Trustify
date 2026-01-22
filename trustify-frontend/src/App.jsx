@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import './App.css'; // Imports the animations we just added
+import { useState, useEffect } from 'react';
+import './App.css';
 
 function App() {
   const [messages, setMessages] = useState([
@@ -7,22 +7,55 @@ function App() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [searchHistory, setSearchHistory] = useState([]);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Load search history from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('trustifyHistory');
+    if (savedHistory) {
+      setSearchHistory(JSON.parse(savedHistory));
+    }
+  }, []);
+
+  // Save search history to localStorage
+  const saveToHistory = (query) => {
+    const newHistory = [
+      { query, timestamp: new Date().toLocaleString() },
+      ...searchHistory
+    ].slice(0, 10); // Keep only last 10 searches
+    setSearchHistory(newHistory);
+    localStorage.setItem('trustifyHistory', JSON.stringify(newHistory));
+  };
+
+  // Load a search from history
+  const loadFromHistory = (historyQuery) => {
+    setInput(historyQuery);
+    setShowHistory(false);
+  };
+
+  // Clear all history
+  const clearHistory = () => {
+    setSearchHistory([]);
+    localStorage.removeItem('trustifyHistory');
+    setShowHistory(false);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    // 1. UI: Add user message immediately
     const userMsg = { role: "user", content: input };
     setMessages((prev) => [...prev, userMsg]);
 
-    // Store input for API call, then clear
+    // Save to history
+    saveToHistory(input);
+
     const currentMessage = input;
     setInput("");
     setIsLoading(true);
 
     try {
-      // 2. LOGIC: Connect to Backend
       const response = await fetch("http://localhost:3000/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -31,7 +64,6 @@ function App() {
 
       const data = await response.json();
       
-      // 3. LOGIC: Handle Response
       let botResponse = data.reply || data.error || JSON.stringify(data);
       setMessages((prev) => [...prev, { role: "assistant", content: botResponse }]);
 
@@ -43,101 +75,131 @@ function App() {
     }
   };
 
-  // --- Inline Styles for Specific Components ---
-  const interactionBoxStyle = {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Glass effect
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: '12px',
-    padding: '15px',
-    marginBottom: '15px',
-    color: 'white',
-    width: '100%',
-    maxWidth: '800px'
-  };
-
-  const inputContainerStyle = {
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: '12px',
-    padding: '20px',
-    color: 'black',
-    maxWidth: "600px",
-    margin: "0 auto",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px"
-  };
-
   return (
     <div className="app-wrapper">
-        <div className="container my-3" style={{ maxWidth: '900px' }}>
-          
-          <h1 className="trustify-title">Trustify 🛡️</h1>
-          
-          <h2 className="text-center pulse-animation" style={{ color: "#C9E4EB", fontSize: '1.5rem' }}>
-            Know what to trust.
-          </h2>
-          
-          <h2 className="text-center pulse-animation" style={{ color: "#00d2ff", fontSize: '1.5rem' }}>
-            Before you believe.
-          </h2>
-          
-          <p className="text-center mb-5 pulse-animation" style={{ color: "white", opacity: 0.9 }}>
-            Trustify helps you critically evaluate online information using transparent credibility signals.
-          </p>
-
-          {/* CHAT HISTORY */}
-          <div className="history-list mt-4 mb-5 d-flex flex-column align-items-center">
-            {messages.reduce((acc, m, i) => {
-              if (m.role === 'user') {
-                const nextMessage = messages[i + 1]; 
-                acc.push(
-                  <div key={i} style={interactionBoxStyle}>
-                    <div className="mb-3">
-                      <strong style={{ color: '#00d2ff', display: 'block', marginBottom: '5px' }}>You:</strong>
-                      <span style={{ fontSize: '1.1rem' }}>{m.content}</span>
-                    </div>
-
-                    {nextMessage && (
-                      <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '10px', marginTop: '10px' }}>
-                        <strong style={{ color: '#005eff', display: 'block', marginBottom: '5px' }}>Trustify:</strong>
-                        <span style={{ lineHeight: '1.6' }}>
-                          {typeof nextMessage.content === 'string' ? nextMessage.content : JSON.stringify(nextMessage.content)}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                );
-              }
-              return acc;
-            }, [])}
-            {isLoading && <div className="text-white spinner-border text-info" role="status"></div>}
-          </div>
-
-          {/* INPUT FORM */}
-          <form onSubmit={handleSubmit} className="text-center">
-            <div style={inputContainerStyle}>
-              <label style={{ color: "#C9E4EB", fontWeight: "bold" }}>Type a news headline or rumor...</label>
-              
-              <input
-                className="form-control"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                style={{ fontWeight: "bold" }}
-                placeholder="Ex: Did the US invade Venezuela?"
-              />
-              
-              <button
-                className="btn btn-info w-100"
-                type="submit"
-                disabled={isLoading}
-                style={{ fontWeight: "bold", color: "white", background: "linear-gradient(135deg, #004e92, #00d2ff)", border: "none" }}
-              >
-                {isLoading ? 'Verifying...' : 'Verify'}
-              </button>
-            </div>
-          </form>
+      {/* History Sidebar */}
+      <div className={`history-sidebar ${showHistory ? 'show' : ''}`}>
+        <div className="history-header">
+          <h3 className="history-title">📋 Search History</h3>
+          <button className="close-history" onClick={() => setShowHistory(false)}>✕</button>
         </div>
+        
+        {searchHistory.length > 0 ? (
+          <>
+            <ul className="history-items">
+              {searchHistory.map((item, idx) => (
+                <li key={idx} className="history-item">
+                  <div className="history-item-content">
+                    <p className="history-query">{item.query}</p>
+                    <span className="history-time">{item.timestamp}</span>
+                  </div>
+                  <button 
+                    className="history-use-btn"
+                    onClick={() => loadFromHistory(item.query)}
+                    title="Use this search"
+                  >
+                    ↻
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <button className="clear-history-btn" onClick={clearHistory}>
+              🗑️ Clear History
+            </button>
+          </>
+        ) : (
+          <p className="no-history">No search history yet. Start verifying facts!</p>
+        )}
+      </div>
+
+      {/* History Toggle Button */}
+      <button 
+        className="history-toggle-btn"
+        onClick={() => setShowHistory(!showHistory)}
+        title="View search history"
+      >
+        📜
+      </button>
+
+      <div className="container" style={{ maxWidth: '900px', width: '100%', textAlign: 'center' }}>
+        
+        {/* Logo + Title Section */}
+        <div className="logo-title-section">
+          <img 
+            src="https://png.pngtree.com/png-vector/20250422/ourmid/pngtree-blue-shield-badge-clipart-illustration-png-image_16042877.png" 
+            alt="Trustify Logo" 
+            className="logo-image-inline"
+            loading="lazy"
+          />
+          <h1 className="trustify-title">TRUSTIFY</h1>
+        </div>
+        
+        <h2 className="pulse-animation" style={{ fontSize: '1.5rem', marginBottom: '10px' }}>
+          Know what to trust.
+        </h2>
+        
+        <h2 className="pulse-animation" style={{ fontSize: '1.5rem', marginBottom: '30px' }}>
+          Before you believe.
+        </h2>
+        
+        <p style={{ color: "rgba(255,255,255,0.9)", fontSize: '1.1rem', marginBottom: '50px', lineHeight: '1.8', animation: 'slideInUp 1s ease-out 0.3s both', maxWidth: '700px', margin: '0 auto 50px' }}>
+          Trustify helps you critically evaluate online information using transparent credibility signals. Verify rumors, fact-check headlines, and find the truth with AI-powered analysis.
+        </p>
+
+        {/* CHAT HISTORY */}
+        <div className="history-list" style={{ marginBottom: '50px', width: '100%' }}>
+          {messages.map((m, i) => (
+            m.role === 'system' ? (
+              <div key={i} style={{ marginBottom: '20px', animation: 'slideInUp 0.6s ease-out' }}>
+                <p style={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.95rem', fontStyle: 'italic' }}>
+                  {m.content}
+                </p>
+              </div>
+            ) : (
+              <div key={i} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start', marginBottom: '16px' }}>
+                <div className={`message-bubble ${m.role === 'user' ? 'user-message' : 'bot-message'}`}>
+                  {m.content}
+                </div>
+              </div>
+            )
+          ))}
+          {isLoading && (
+            <div style={{ textAlign: 'center', marginTop: '30px', animation: 'fadeIn 0.5s ease-out' }}>
+              <div className="spinner-border text-white" role="status" style={{ width: '40px', height: '40px', borderColor: 'rgba(255,255,255,0.3)', borderTopColor: 'white', display: 'inline-block' }}></div>
+              <p style={{ color: 'white', marginTop: '15px', fontWeight: 500 }}>Verifying information...</p>
+            </div>
+          )}
+        </div>
+
+        {/* INPUT FORM */}
+        <form onSubmit={handleSubmit} className="input-wrapper">
+          <div className="input-container">
+            <label>Enter a news headline or rumor to verify:</label>
+            
+            <input
+              className="form-control"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Example: Did the US land on the moon?"
+            />
+            
+            <button
+              className="btn-verify"
+              type="submit"
+              disabled={isLoading}
+            >
+              {isLoading ? 'Verifying...' : 'Verify Claim'}
+            </button>
+          </div>
+        </form>
+
+        {/* Footer */}
+        <div style={{ marginTop: '80px', marginBottom: '40px', opacity: 0.8, animation: 'fadeIn 1.5s ease-out 0.8s both' }}>
+          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.9rem', letterSpacing: '1px' }}>
+            Trusted by thousands | Powered by AI | 100% Secure
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
