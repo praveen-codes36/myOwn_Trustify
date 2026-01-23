@@ -7,7 +7,8 @@ function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [searchHistory, setSearchHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
-
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [isAddingSource, setIsAddingSource] = useState(false);
   // 1. Load search history from localStorage on mount
   useEffect(() => {
     const savedHistory = localStorage.getItem('trustifyHistory');
@@ -96,6 +97,28 @@ function App() {
 
     } finally {
       setIsLoading(false);
+    }
+  };
+
+
+  const handleAddSource = async (e) => {
+    e.preventDefault();
+    if (!sourceUrl.trim()) return;
+
+    setIsAddingSource(true);
+    try {
+      const response = await fetch("http://localhost:3000/add-source", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: sourceUrl }),
+     });
+      const data = await response.json();
+      alert(data.message || data.error);
+      setSourceUrl("");
+    }catch (error) {
+      alert("Failed to add source.");
+    } finally {
+      setIsAddingSource(false);
     }
   };
 
@@ -197,6 +220,127 @@ function App() {
           )}
         </div>
 
+
+          {/* ADD SOURCE SECTION */}
+{/* <div className="source-manager" style={{ 
+  marginBottom: '40px', 
+  padding: '25px', 
+  background: 'rgba(255,255,255,0.1)', // Slightly brighter background for the container
+  borderRadius: '16px',
+  backdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255,255,255,0.2)',
+  textAlign: 'center'
+}}>
+  <h4 style={{ color: 'white', marginBottom: '15px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+    <span style={{ fontSize: '1.2rem' }}>➕</span> Add Custom Source to Database
+  </h4>
+  
+  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+    <input 
+      type="text"
+      className="form-control"
+      placeholder="Paste a URL (e.g., https://example.com/news)"
+      value={sourceUrl}
+      onChange={(e) => setSourceUrl(e.target.value)}
+      style={{ 
+        width: '100%', 
+        padding: '14px 15px', 
+        borderRadius: '30px', // Rounded edges to match your "Add Source" button
+        border: '1px solid rgba(255,255,255,0.3)',
+        backgroundColor: 'rgba(255, 255, 255, 0.9)', // Solid light background so you can see it
+        color: '#333',
+        fontSize: '1rem',
+        outline: 'none'
+      }}
+    />
+    <button 
+      className="btn-verify" 
+      onClick={handleAddSource}
+      disabled={isAddingSource}
+      style={{ 
+        width: '100%',
+        padding: '14px',
+        borderRadius: '30px',
+        fontWeight: 'bold',
+        cursor: isAddingSource ? 'not-allowed' : 'pointer',
+        backgroundColor: '#6e57e0', // Adjust this color to match your theme
+        color: 'white',
+        border: 'none'
+      }}
+    >
+      {isAddingSource ? '⏳ Indexing Content...' : 'Add Source'}
+    </button>
+  </div>
+</div> */}
+
+
+      {/* WRAPPER TO POSITION ON THE RIGHT */}
+<div className="right-sidebar-container" style={{
+  position: 'fixed',
+  top: '5px', // Adjust based on your logo height
+  right: '20px',
+  width: '260px', // Narrower width
+  zIndex: 100,
+  animation: 'slideInRight 0.8s ease-out'
+}}>
+  <div className="source-manager" style={{ 
+    padding: '20px', 
+    background: 'rgba(255,255,255,0.1)', 
+    borderRadius: '20px',
+    backdropFilter: 'blur(15px)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    textAlign: 'center',
+    boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+    display: 'flex',
+    flexDirection: 'column',
+    minHeight: '300px' // Increased height
+  }}>
+    <h4 style={{ color: 'white', marginBottom: '20px', fontSize: '1.1rem', lineHeight: '1.4' }}>
+      <span style={{ fontSize: '1.4rem', display: 'block', marginBottom: '8px' }}>➕</span> 
+      Add Custom Source
+    </h4>
+    
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', flexGrow: 1, justifyContent: 'center' }}>
+      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.85rem', textAlign: 'left', margin: '0 5px' }}>
+        Paste URL to index:
+      </p>
+      <input 
+        type="text"
+        className="form-control"
+        placeholder="https://..."
+        value={sourceUrl}
+        onChange={(e) => setSourceUrl(e.target.value)}
+        style={{ 
+          width: '100%', 
+          padding: '12px', 
+          borderRadius: '12px', 
+          border: 'none',
+          backgroundColor: 'white',
+          color: '#333',
+          fontSize: '0.9rem'
+        }}
+      />
+      <button 
+        className="btn-verify" 
+        onClick={handleAddSource}
+        disabled={isAddingSource}
+        style={{ 
+          width: '100%',
+          padding: '12px',
+          borderRadius: '12px',
+          fontWeight: 'bold',
+          cursor: isAddingSource ? 'not-allowed' : 'pointer',
+          backgroundColor: '#6e57e0',
+          color: 'white',
+          border: 'none',
+          marginTop: 'auto' // Pushes button to bottom
+        }}
+      >
+        {isAddingSource ? 'Indexing...' : 'Add Source'}
+      </button>
+    </div>
+  </div>
+</div>
         {/* INPUT FORM */}
         <form onSubmit={handleSubmit} className="input-wrapper">
           <div className="input-container">

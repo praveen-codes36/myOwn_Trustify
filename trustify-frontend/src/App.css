@@ -30,6 +30,27 @@ body {
   100% { background-position: 0% 50%; }
 }
 
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Ensure the sidebar doesn't cover content on very small screens */
+@media (max-width: 1100px) {
+  .right-sidebar-container {
+    position: static;
+    width: 100%;
+    margin-top: 20px;
+    margin-bottom: 20px;
+  }
+}
 /* Animated Background Orbs */
 .app-wrapper::before {
   content: '';
