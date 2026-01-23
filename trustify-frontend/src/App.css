@@ -129,10 +129,10 @@ body {
 .logo-image-inline {
   width: 90px;
   height: 90px;
-  filter: drop-shadow(0 10px 30px rgba(255, 255, 255, 0.3));
   animation: bounce 3s infinite ease-in-out;
   transition: all 0.3s ease;
   object-fit: contain;
+  margin-top: 25px;
 }
 
 .logo-image-inline:hover {

@@ -2,15 +2,13 @@ import { useState, useEffect } from 'react';
 import './App.css';
 
 function App() {
-  const [messages, setMessages] = useState([
-    { role: "system", content: "Hello! I am Trustify. Ask me to verify a rumor or news headline." }
-  ]);
   const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]); 
   const [isLoading, setIsLoading] = useState(false);
   const [searchHistory, setSearchHistory] = useState([]);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Load search history from localStorage on mount
+  // 1. Load search history from localStorage on mount
   useEffect(() => {
     const savedHistory = localStorage.getItem('trustifyHistory');
     if (savedHistory) {
@@ -18,42 +16,54 @@ function App() {
     }
   }, []);
 
-  // Save search history to localStorage
-  const saveToHistory = (query) => {
+  // 2. Save search history to localStorage
+  // Now accepts both the user's query and the AI's response
+  const saveToHistory = (query, response) => {
     const newHistory = [
-      { query, timestamp: new Date().toLocaleString() },
+      { 
+        query, 
+        response, // Store the answer here
+        timestamp: new Date().toLocaleString() 
+      },
       ...searchHistory
     ].slice(0, 10); // Keep only last 10 searches
+    
     setSearchHistory(newHistory);
     localStorage.setItem('trustifyHistory', JSON.stringify(newHistory));
   };
 
-  // Load a search from history
-  const loadFromHistory = (historyQuery) => {
-    setInput(historyQuery);
+  // 3. Load a search from history
+  const loadFromHistory = (historyItem) => {
+    // This immediately shows the old conversation in the chat window
+    setMessages([
+      { role: "user", content: historyItem.query },
+      { role: "assistant", content: historyItem.response }
+    ]);
+    
     setShowHistory(false);
   };
 
-  // Clear all history
+  // 4. Clear all history
   const clearHistory = () => {
     setSearchHistory([]);
     localStorage.removeItem('trustifyHistory');
     setShowHistory(false);
   };
 
+  // 5. Handle Submit
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
 
+    // Show user message immediately
     const userMsg = { role: "user", content: input };
     setMessages((prev) => [...prev, userMsg]);
 
-    // Save to history
-    saveToHistory(input);
-
-    const currentMessage = input;
+    const currentMessage = input; 
     setInput("");
     setIsLoading(true);
+
+    // Note: We DO NOT save to history here yet. We wait for the result.
 
     try {
       const response = await fetch("http://localhost:3000/chat", {
@@ -64,12 +74,26 @@ function App() {
 
       const data = await response.json();
       
-      let botResponse = data.reply || data.error || JSON.stringify(data);
+      // Extract the correct response string
+      const botResponse = data.reply || data.error || JSON.stringify(data);
+      
+      // Update Chat UI
       setMessages((prev) => [...prev, { role: "assistant", content: botResponse }]);
+
+      // SUCCESS: Save Query + Real Response to history
+      saveToHistory(currentMessage, botResponse);
 
     } catch (error) {
       console.error("Frontend Error:", error);
-      setMessages((prev) => [...prev, { role: "assistant", content: "Error: Could not connect to server.js (Is it running on port 3000?)" }]);
+      
+      const errorMessage = "Error: Could not connect to server.js (Is it running on port 3000?)";
+      
+      // Update Chat UI with Error
+      setMessages((prev) => [...prev, { role: "assistant", content: errorMessage }]);
+
+      // ERROR: Save Query + Error Message to history so user knows it failed
+      saveToHistory(currentMessage, errorMessage);
+
     } finally {
       setIsLoading(false);
     }
@@ -95,8 +119,9 @@ function App() {
                   </div>
                   <button 
                     className="history-use-btn"
-                    onClick={() => loadFromHistory(item.query)}
-                    title="Use this search"
+                    // IMPORTANT FIX: Passing the whole 'item' object, not just the query string
+                    onClick={() => loadFromHistory(item)}
+                    title="Load this conversation"
                   >
                     ↻
                   </button>
@@ -130,6 +155,7 @@ function App() {
             alt="Trustify Logo" 
             className="logo-image-inline"
             loading="lazy"
+  
           />
           <h1 className="trustify-title">TRUSTIFY</h1>
         </div>
