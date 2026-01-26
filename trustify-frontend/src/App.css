@@ -598,3 +598,110 @@ label {
     font-size: 1.2rem;
   }
 }
+
+/* --- Source Sidebar (Right Side) --- */
+
+/* The Toggle Button (Top Right) */
+.source-toggle-btn {
+  position: fixed;
+  right: 20px;
+  top: 20px;
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, rgba(255, 100, 100, 0.3), rgba(231, 60, 126, 0.3));
+  border: 2px solid rgba(255, 100, 100, 0.6);
+  color: white;
+  border-radius: 50%;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 999;
+  box-shadow: 0 6px 25px rgba(231, 60, 126, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: slideInDown 0.6s ease-out;
+}
+
+.source-toggle-btn:hover {
+  background: linear-gradient(135deg, rgba(255, 100, 100, 0.5), rgba(231, 60, 126, 0.5));
+  border-color: rgba(255, 100, 100, 0.9);
+  transform: scale(1.1) rotate(90deg);
+  box-shadow: 0 10px 40px rgba(231, 60, 126, 0.4);
+}
+
+/* The Sliding Sidebar Panel */
+.source-sidebar {
+  position: fixed;
+  right: -400px; /* Hidden by default */
+  top: 0;
+  width: 380px;
+  height: 100vh;
+  background: rgba(30, 30, 60, 0.95);
+  backdrop-filter: blur(20px);
+  border-left: 2px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 10px 60px rgba(0, 0, 0, 0.4);
+  transition: right 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 1000;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.source-sidebar.show {
+  right: 0; /* Slide in */
+}
+
+/* Inner content styling for Source Sidebar */
+.source-content {
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.source-description {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.source-input {
+  width: 100%;
+  padding: 15px;
+  border-radius: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  font-size: 1rem;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.source-input:focus {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
+}
+
+/* Mobile Responsiveness for Source Sidebar */
+@media (max-width: 768px) {
+  .source-sidebar {
+    width: 100%;
+    right: -100%;
+    border-left: none;
+  }
+
+  .source-sidebar.show {
+    right: 0;
+  }
+  
+  .source-toggle-btn {
+    right: 15px;
+    top: 15px;
+    width: 45px;
+    height: 45px;
+  }
+}
